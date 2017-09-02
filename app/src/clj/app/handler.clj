@@ -5,6 +5,8 @@
             [compojure.route :as route]
             [app.env :refer [defaults]]
             [mount.core :as mount]
+            [ring.middleware.session.memory :refer [memory-store]]
+            [noir.session :as session]
             [app.middleware :as middleware]))
 
 (mount/defstate init-app
@@ -22,4 +24,7 @@
                      :title "page not found"})))))
 
 
-(defn app [] (middleware/wrap-base #'app-routes))
+(def app
+  (session/wrap-noir-session*
+    (middleware/wrap-base #'app-routes)))
+

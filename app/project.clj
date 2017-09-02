@@ -3,7 +3,8 @@
   :description "FIXME: write description"
   :url "http://example.com/FIXME"
 
-  :dependencies [[buddy "1.3.0"]
+  :dependencies [
+                 [buddy "1.3.0"]
                  [clj-time "0.13.0"]
                  [compojure "1.6.0"]
                  [conman "0.6.4"]
@@ -28,7 +29,10 @@
                  [org.webjars/jquery "3.1.1"]
                  [ring-webjars "0.2.0"]
                  [ring/ring-core "1.6.1"]
+                 [lib-noir "0.9.9"]
+                 [environ "1.0.0"]
                  [ring/ring-defaults "0.3.0"]
+                 [dk.ative/docjure "1.11.0"]
                  [selmer "1.10.8"]]
 
   :min-lein-version "2.0.0"
