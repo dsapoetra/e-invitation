@@ -5,19 +5,13 @@
             [ring.middleware.anti-forgery :refer [wrap-anti-forgery]]
             [ring.middleware.webjars :refer [wrap-webjars]]
             [muuntaja.middleware :refer [wrap-format wrap-params]]
-            [app.config :as config]
+            [app.config :refer [env]]
             [ring.middleware.flash :refer [wrap-flash]]
             [immutant.web.middleware :refer [wrap-session]]
             [ring.middleware.defaults :refer [site-defaults wrap-defaults]]
             [buddy.auth.middleware :refer [wrap-authentication wrap-authorization]]
             [buddy.auth.accessrules :refer [restrict]]
             [buddy.auth :refer [authenticated?]]
-            [ring.middleware.reload :as reload]
-            [ring-ttl-session.core :refer [ttl-memory-store]]
-            [selmer.middleware :refer [wrap-error-page]]
-            [prone.middleware :refer [wrap-exceptions]]
-            [environ.core :as envi]
-            [ring.middleware.session.cookie :refer [cookie-store]]
             [buddy.auth.backends.session :refer [session-backend]])
   (:import [javax.servlet ServletContext]))
 
@@ -33,7 +27,7 @@
                 ;; if the context is not specified in the request
                 ;; we check if one has been specified in the environment
                 ;; instead
-                (:app-context config/env))]
+                (:app-context env))]
       (handler request))))
 
 (defn wrap-internal-error [handler]
@@ -53,15 +47,6 @@
      (error-page
        {:status 403
         :title "Invalid anti-forgery token"})}))
-
-
-(defn wrap-dev [handler]
-  (if (envi/env :dev)
-    (-> handler
-        reload/wrap-reload
-        wrap-error-page
-        wrap-exceptions)
-    handler))
 
 (defn wrap-formats [handler]
   (let [wrapped (-> handler wrap-params wrap-format)]
@@ -86,13 +71,13 @@
         (wrap-authorization backend))))
 
 (defn wrap-base [handler]
-  (-> handler
-      wrap-dev
-      wrap-formats
+  (-> ((:middleware defaults) handler)
+      wrap-auth
       wrap-webjars
+      wrap-flash
+      (wrap-session {:cookie-attrs {:http-only true}})
       (wrap-defaults
         (-> site-defaults
-            (assoc-in [:security :anti-forgery] false)
-            (assoc-in  [:session :store] (ttl-memory-store (* 60 30)))))
+            (assoc-in [:security :anti-forgery] false)))
       wrap-context
       wrap-internal-error))
